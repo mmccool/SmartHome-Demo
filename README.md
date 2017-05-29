@@ -63,7 +63,7 @@ There are a few ways you can run the containers, one critical aspect is to get t
 
 
 **Option 1:** Running the containers within the `docker0` bridge network
-When running both `smarthome-sensors` and 'smarthome-gateway` containers on the bridge network, we recommend publishing port 8000 to a local port (e.g. 8001). 
+When running both `smarthome-sensors` and `smarthome-gateway` containers on the bridge network, we recommend publishing port 8000 to a local port (e.g. 8001). 
 
 Example, using locally built containers:
 ```
