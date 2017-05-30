@@ -25,7 +25,7 @@ Our online [tutorial](https://01.org/smarthome) is the most comprehensive source
 
 You will find more information about these containers in the `README.md` files respectively located under `ocf-servers/`, `gateway/` and `smarthome-web-portal/tools/docker/`.
 
-The following only describes how to run the sensor and gateway codes. If you also want to run the cloud web portal refer to the [cloud web portal README.md file](smarthome-web-portal/tools/docker/README.md).
+The following only describes how to run the sensor and gateway codes. If you also want to run the cloud web portal refer to the [cloud web portal README.md file][Cloud Web Portal README].
 
 ## Generic instructions for the Docker containers
 
@@ -42,10 +42,11 @@ $ cd SmartHome-Demo
 ```
 
 ### Getting (any of) the Smart Home containers
-There are two options available: build it locally, or grab it from [Docker Hub](https://hub.docker.com).
+For each container, there are two options available: build it locally, or grab it from [Docker Hub](https://hub.docker.com).
 
 #### Building a SmartHome-* Docker container
-**Option 1:** build the Docker containers
+**Option 1:** Build the Docker containers locally  
+To build the containers locally, enter each of the subdirectories as shown below and issue an appropriate `docker build` command.
 ```
 $ cd gateway
 $ sudo docker build -t smarthome-gateway:v1 .
@@ -55,9 +56,9 @@ $ cd ../smarthome-web-portal
 $ sudo docker build -t smarthome-cloud:v1 .
 $ cd ..
 ```
-It will take a little while depending on your host machine as it compiles [IoTivity](https://www.iotivity.org) as part of the build process. If you are behind a proxy, please refer to this [README.md](./smarthome-web-portal/tools/docker/README.md) on how to pass the right variables to `docker`.
+This will take a little while depending on your host machine as it compiles [IoTivity](https://www.iotivity.org) as part of the build process. If you are behind a proxy, please refer to this [README.md][Cloud Web Portal README] on how to pass the right variables to `docker`.
 
-**Option 2:** get the containers from Docker Hub
+**Option 2:** Get the containers from Docker Hub  
 Alternatively, you can grab any of the containers from Docker Hub directly using the following command:
 ```
 $ sudo docker pull smarthome2cloud/smarthome-sensors
@@ -66,10 +67,10 @@ $ sudo docker pull smarthome2cloud/smarthome-cloud
 ```
 
 #### Running the Docker containers
-There are a few ways you can run the containers, one critical aspect is to get the networking part right. The `smarthome-sensors` and `smarthome-gateway` containers need to be on the same subnet in order for the OCF servers to be discovered by the gateway. This is the case by default if you run both containers on the same host machine (by default, both containers will be running in the `docker0` bridge network). If you intend to run those on different physical machines (that are on the same subnet), the easiest way to place them on the same subnet is to use the `--network host` parameter. If you are interested in understanding more about networking and Docker, please visit the [Docker container networking](https://docs.docker.com/engine/userguide/networking/) page. 
+There are a few ways you can run the containers, but one critical aspect is to get the networking part right. The `smarthome-sensors` and `smarthome-gateway` containers need to be on the same subnet in order for the OCF servers to be discovered by the gateway. This is the case by default if you run both containers on the same host machine (by default, both containers will be running in the `docker0` bridge network). If you intend to run those on different physical machines (that are on the same subnet), the easiest way to place them on the same subnet is to use the `--network host` parameter. If you are interested in understanding more about networking and Docker, please visit the [Docker container networking](https://docs.docker.com/engine/userguide/networking/) page. 
 
 
-**Option 1:** Running the containers within the `docker0` bridge network
+**Option 1:** Running the containers within the `docker0` bridge network  
 When running both `smarthome-sensors` and `smarthome-gateway` containers on the bridge network, we recommend publishing port 8000 to a local port (e.g. 8001). 
 
 Example, using locally built containers:
@@ -84,7 +85,7 @@ $ sudo docker run -p 8001:8000 smarthome2cloud/smarthome-gateway:latest
 ```
 To verify that the virtual Home Gateway is available and that the OCF servers are seen, open your browser and go to http://localhost:8001/api/oic/res.
 
-We recommend using a browser for this and if you are using Google Chrome, we would recommend that you install the [JSON Viewer](https://chrome.google.com/webstore/detail/json-viewer/gbmdgpbipfallnflgajpaliibnhdgobh) extension (or similar tool) to make the output look more human-friendly. Under Mozilla Firefox you can use [JSON View](https://addons.mozilla.org/en-us/firefox/addon/jsonview/).
+We recommend using a browser for this and if you are using Google Chrome, we would recommend that you install the [JSON Viewer](https://chrome.google.com/webstore/detail/json-viewer/gbmdgpbipfallnflgajpaliibnhdgobh) extension (or similar tool) to make the output look more human-friendly. Under Mozilla Firefox you can use the [JSON View](https://addons.mozilla.org/en-us/firefox/addon/jsonview/) extension.
 
 *Note:* It is not strictly required to use Docker's port publishing (`-p 8001:8000` argument) to access the [IoT REST API Server], you can use the container's IP address directly instead of `localhost`. The container will print out its IP address when it starts, or you can also retrieve it using `docker inspect <container ID>`.
 
@@ -93,7 +94,7 @@ You can also use `curl` if you are familiar with it:
 $ curl http://localhost:8001/api/oic/res
 ```
 
-**Option 2:** Running the containers directly on the host network
+**Option 2:** Running the containers directly on the host network  
 If you built the containers locally, you can invoke the contents of the sensor and gateway containers as follows:
 ```
 $ sudo docker run --network host smarthome-sensors:v1
@@ -119,5 +120,9 @@ $ sudo docker run -v <path/to/ocf-server.conf/on/host>:/opt/SmartHome-Demo/ocf-s
 ```
 *Note*: Use the absolute path instead of relative path to point to the configuration file on the host server. 
 
+### Running the Cloud Web Portal
+If you now wish to run the cloud web portal, refer to the [cloud web portal README.md][Cloud Web Portal README] for further instructions.
+
 [IoT REST API Server]: https://github.com/01org/iot-rest-api-server/
 [OCF]: https://openconnectivity.org/
+[Cloud Web Portal README]: smarthome-web-portal/tools/docker/README.md
