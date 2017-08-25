@@ -18,9 +18,9 @@ SQLALCHEMY_TRACK_MODIFICATIONS = True
 #SQLALCHEMY_DATABASE_URI = get_vcap_service()
 
 ADMIN_PWD = hashlib.sha256('admin').hexdigest()
-UPLOAD_FOLDER = basedir + '/dataset/'
-Model_Seria_FOLDER = basedir + '/model/seria/'
-Model_Pic_FOLDER = basedir + '/static/images/model/'
+UPLOAD_FOLDER = os.path.join(basedir, 'dataset')
+Model_Seria_FOLDER = os.path.join(basedir, 'model', 'seria')
+Model_Pic_FOLDER = os.path.join(basedir, 'static', 'images', 'model')
 
 FORECAST_URL = "https://query.yahooapis.com/v1/public/yql"
 HISTORICAL_URL = "http://api.wunderground.com/api/563fd474dd62bc34/"

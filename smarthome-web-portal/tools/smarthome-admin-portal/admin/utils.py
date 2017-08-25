@@ -26,5 +26,5 @@ def get_vcap_service():
                 uri = str(mysql_creds['uri']).split("?")
                 return "{}?charset=utf8".format(uri[0])
     else:
-        return 'mysql+pymysql://root:zaq12wsx@localhost:13306/smart_home_test'
+        return 'mysql+pymysql://root:zaq12wsx@localhost:13306/smart_home'
 

@@ -23,6 +23,4 @@ STATUS_GRP = ['led', 'fan', 'rgbled', 'buzzer']
 DATA_GRP = ['temperature', 'solar', 'illuminance', 'power', 'energy', 'environment']
 BRILLO_GRP = ['rgbled', 'brightness', 'audio', 'mp3player']
 
-TAP_ENV_VARS = ['INSTANCE_ID', 'VERSION', 'NAME', 'URIS']
-
 

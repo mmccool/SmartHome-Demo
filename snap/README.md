@@ -75,6 +75,14 @@ bluez:service       bluez:client,iotivity-smarthome-demo:bluez
 In the SSH session with the Intel Joule development kit installed this snap, reference the following list for the defined commands and their functions:
 * **run-gateway-server**  
   This command launches the Smart Home gateway server which supports 3D webGL UI at port 8080, and run the rule engine that handles the interactions between discovered OCF servers.
+* **node** &lt;user script&gt;  
+  Use this command to launch the [JavaScript based OCF servers](https://github.com/01org/SmartHome-Demo/tree/master/ocf-servers) included in the `ocf-servers` folder of the SmartHome-Demo repository, the required node.js library modules are preinstalled in the confined environment. For example, the following command represents the onboard LED on the Intel Edison board as an OCF LED resource:
+```
+root@edison:~# NODE_DEBUG=led iotivity-smarthome-demo.node /snap/iotivity-smarthome-demo/current/ocf-servers/js-servers/led.js
+LED 1500: Create LED resource.
+LED 1500: Send the response. value:  false
+LED 1500: register() resource successful
+```
 * **rfkill**  
   Linux command line tool for enabling and disabling wireless devices. For example, issue the following command to unblock the Bluetooth interface.
 ```

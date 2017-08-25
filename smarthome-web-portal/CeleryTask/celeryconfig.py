@@ -8,7 +8,7 @@ from utils.config import config
 mq_conn_str = config.get_rabbitmq_conn_str()
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
-CELERY_RESULT_BACKEND = 'amqp://'
+CELERY_RESULT_BACKEND = 'rpc://'
 BROKER_URL = mq_conn_str
 CELERY_IMPORTS = ('CeleryTask.tasks',)
 CELERY_REDIRECT_STDOUTS_LEVEL = 'INFO'

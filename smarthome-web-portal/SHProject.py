@@ -22,7 +22,7 @@ from DB.api import resource, user, gateway, sensor_group, actual_weather, actual
 from RestClient.sensor import Sensor
 from RestClient.api import ApiClient
 from RestClient.api.iotError import IoTRequestError
-from utils.settings import SECRET_KEY, ALERT_GRP, STATUS_GRP, DATA_GRP, BRILLO_GRP, TAP_ENV_VARS
+from utils.settings import SECRET_KEY, ALERT_GRP, STATUS_GRP, DATA_GRP, BRILLO_GRP
 from datetime import timedelta
 
 
@@ -426,53 +426,15 @@ def energy():
                            static_url_prefix=static_url_prefix)
 
 
-def _get_cf_instance_number():
-    num = ''
-    endpoint = config.get_tap_auth_endpoint()
-    api = config.get_tap_api_endpoint()
-    if endpoint and api:
-        proxy = config.get_all_proxy()
-        client = ApiClient(endpoint, proxy)
-        client.add_header('content-type', 'application/x-www-form-urlencoded;charset=utf-8')
-        client.add_header('accept', 'application/json;charset=utf-8')
-        client.add_header('authorization', 'Basic Y2Y6')
-        data = {
-                    'grant_type': 'password',
-                    'username': config.get_tap_uname(),
-                    'password': config.get_tap_pwd(),
-                }
-        ret = client.post('/oauth/token', data)
-        if ret.ok():
-            at = ret.content.get('access_token')
-            cc = ApiClient(api, proxy)
-            cc.add_header('authorization', 'bearer ' + at)
-            resp = cc.get('/v2/apps?q=name:{}'.format(config.get_tap_app_name()))
-            if resp.ok():
-                num = resp.content['resources'][0]['entity']['instances']
-        else:
-            print "response: " + str(ret.content)
-            print "status code:" + str(ret.status_code)
-            print "post data:" + str(data)
-    return str(num)
-
-
 @app.route('/cf_instance')
 @login_required
 def get_instance():
     """
     Get instance ID and total running instances in the CF Cloud
     Return data in json format
+    Not implemented yet for k8s
     """
     inst = {}
-    env_str = os.getenv("VCAP_APPLICATION", "")
-    if env_str:
-        inst['Instance'] = os.getenv('CF_INSTANCE_INDEX', '')
-        inst['Total'] = _get_cf_instance_number()
-
-        env_dict = json.loads(env_str)
-        for key in sorted(env_dict.keys()):
-            if str(key).upper() in TAP_ENV_VARS:
-                inst[key] = env_dict[key]
     return jsonify({'cf_instance': inst}), 201
 
 
@@ -682,9 +644,11 @@ def get_data_model():
                 admin_uri = uris[0].split(".")
                 admin_uri[0] = "smarthome-adminportal"
                 admin_uri = ".".join(admin_uri)
+        elif os.path.isfile('/.dockerenv'):
+            admin_uri = "image/model/"
         else:
-            admin_uri = "localhost:4000"
-    emit('my model resp', "http://" + admin_uri + "/images/model/" + data_model['data_model']['name'] + ".png" if data_model and admin_uri else data_model)
+            admin_uri = "http://localhost:4000/images/model/"
+    emit('my model resp', admin_uri + data_model['data_model']['name'] + ".png" if data_model and admin_uri else data_model)
 
 
 if __name__ == '__main__':

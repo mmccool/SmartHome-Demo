@@ -23,7 +23,7 @@ def hash_str(raw_str):
 DEFAULT_GATEWAYS = [
     {
         'name': 'lab',
-        'url': 'https://10.239.76.66:8000/',
+        'url': 'http://172.17.0.2:8000/',
         'address': 'No. 880, Zi Xing Rd, Shanghai',
         'latitude': '31.020780',
         'longitude': '121.454648',
@@ -31,7 +31,7 @@ DEFAULT_GATEWAYS = [
     },
     {
         'name': 'demo',
-        'url': 'https://192.55.66.110:8000/',
+        'url': 'http://192.55.66.110:8000/',
         'address': 'Manchester Grand Hyatt San Diego',
         'latitude': '32.714987',
         'longitude': '-117.167359',

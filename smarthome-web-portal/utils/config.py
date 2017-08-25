@@ -99,21 +99,6 @@ class Configuration(SingletonMixin):
     def get_all_proxy(self):
         return self.parser.get_default('proxy', 'all_proxy')
 
-    def get_tap_auth_endpoint(self):
-        return self.parser.get_default('TAP', 'auth_endpoint')
-
-    def get_tap_api_endpoint(self):
-        return self.parser.get_default('TAP', 'api_endpoint')
-
-    def get_tap_uname(self):
-        return self.parser.get_default('TAP', 'username')
-
-    def get_tap_pwd(self):
-        return self.parser.get_default('TAP', 'password')
-
-    def get_tap_app_name(self):
-        return self.parser.get_default('TAP', 'app_name')
-
     def get_map_types(self):
         types = self.parser.get_default('map-filter', 'types', '')
         return types.split(',') if types else ''

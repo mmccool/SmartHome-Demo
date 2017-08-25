@@ -1,0 +1,13 @@
+[Unit]
+Description=SmartHome illuminance startup service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node /opt/SmartHome-Demo/ocf-servers/js-servers/ambient_light.js
+Environment='NODE_PATH=/opt/SmartHome-Demo/node_modules/'
+Restart=on-failure
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

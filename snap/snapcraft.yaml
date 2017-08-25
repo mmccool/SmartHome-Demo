@@ -1,5 +1,5 @@
 name: iotivity-smarthome-demo
-version: 0.2
+version: 0.4
 summary: IoTivity SmartHome Demo
 description: The IoTivity based SmartHome demo snap
 confinement: strict  # use 'strict' once the snap have the right plugs and slots
@@ -14,6 +14,13 @@ apps:
   run-gateway-server:
     command: env NODE_PATH=$SNAP/lib/node_modules:$SNAP/lib/node_modules/iot-rest-api-server/node_modules node $SNAP/gateway/gateway-server.js
     plugs: [ network-bind ]
+
+  node:
+    command: env \
+      LD_LIBRARY_PATH=$SNAP/lib/node_modules/iot-rest-api-server/node_modules/iotivity-node/iotivity-installed/lib:$LD_LIBRARY_PATH \
+      NODE_PATH=$SNAP/lib/node_modules:$SNAP/lib/node_modules/iot-rest-api-server/node_modules \
+      node
+    plugs: [ hardware-observe, home, network-bind ]
 
   hciconfig:
     command: bin/hciconfig
@@ -31,7 +38,7 @@ parts:
     filesets:
       gateway-files: [ gateway/* ]
       ocf-server-files: [ ocf-servers/* ]
-    snap: [ $gateway-files, $ocf-server-files ]
+    prime: [ $gateway-files, $ocf-server-files ]
 
   # Part installs iotivity, iotivity-node, iot-rest-api-server
   meta-iot-web:
@@ -43,12 +50,14 @@ parts:
       - express
       - websocket
       # adding additional node.js modules
+      - mraa
+      - jsupm_i2clcd
       - noble
       - bleno
     filesets:
       exports: [ bin/*, lib/* ]
     stage: [ $exports ]
-    snap:  [ $exports ]
+    prime:  [ $exports ]
 
   # Part installs Ubuntu packages
   ubuntu:
