@@ -214,7 +214,29 @@ def _get_sensor_data(token_dict):
         typ = sensor.get('sensor_type').get('mapping_class')
         href = sensor.get('path')
         resource_id = sensor.get("id")
-        if href.startswith("/a/"):
+        if href.startswith("/brillo/"):
+            latest_data = util.get_class("DB.api.{}.get_latest_by_gateway_uuid".format(typ))(
+                resource_id=resource_id)
+            # print latest_data
+            if latest_data is None:
+                uuid = sensor.get('uuid')
+                if ret['brillo'].get(uuid) is None:
+                    ret['brillo'].update({uuid: {typ: {'resource_id': resource_id}}})
+                else:
+                    ret['brillo'][uuid].update({typ: {'resource_id': resource_id}})
+                continue
+            if typ in BRILLO_GRP:
+                if typ in ['brightness']:
+                    keys = [typ]
+                elif typ == 'rgbled':
+                    keys = ['rgbvalue']
+                elif typ == 'audio':
+                    keys = ['volume', 'mute']
+                elif typ == 'mp3player':
+                    keys = ['media_states', 'playlist', 'state', 'title']
+
+                _compose_sensor_data(typ, latest_data, keys, 'brillo', ret)
+        else:
             if typ in ALERT_GRP:
                 token = token_dict.get(str(resource_id)) if str(resource_id) in token_dict.keys() \
                                                             and token_dict.get(str(resource_id)) else default_token
@@ -258,28 +280,6 @@ def _get_sensor_data(token_dict):
                     _compose_sensor_data(sensor_type, latest_data, key, 'data', ret)
             elif typ == "generic":
                 _compose_sensor_data(typ, latest_data, 'json_data', 'generic', ret)
-        elif href.startswith("/brillo/"):
-            latest_data = util.get_class("DB.api.{}.get_latest_by_gateway_uuid".format(typ))(
-                resource_id=resource_id)
-            # print latest_data
-            if latest_data is None:
-                uuid = sensor.get('uuid')
-                if ret['brillo'].get(uuid) is None:
-                    ret['brillo'].update({uuid: {typ: {'resource_id': resource_id}}})
-                else:
-                    ret['brillo'][uuid].update({typ: {'resource_id': resource_id}})
-                continue
-            if typ in BRILLO_GRP:
-                if typ in ['brightness']:
-                    keys = [typ]
-                elif typ == 'rgbled':
-                    keys = ['rgbvalue']
-                elif typ == 'audio':
-                    keys = ['volume', 'mute']
-                elif typ == 'mp3player':
-                    keys = ['media_states', 'playlist', 'state', 'title']
-
-                _compose_sensor_data(typ, latest_data, keys, 'brillo', ret)
     return ret
 
 
