@@ -170,7 +170,7 @@ function updateHandler(request) {
 }
 
 device.device = Object.assign(device.device, {
-    name: 'Smart Home Buzzer (' + namedesc + ')',
+    name: 'Smart Home Buzzer (' + desc + ')',
     coreSpecVersion: 'core.1.1.0',
     dataModels: ['res.1.1.0']
 });

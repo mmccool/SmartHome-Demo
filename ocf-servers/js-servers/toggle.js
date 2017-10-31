@@ -189,7 +189,7 @@ function retrieveHandler(request) {
 }
 
 device.device = Object.assign(device.device, {
-    name: 'Smart Home Toggle (' + namedesc + ')',
+    name: 'Smart Home Toggle (' + desc + ')',
     coreSpecVersion: 'core.1.1.0',
     dataModels: ['res.1.1.0']
 });

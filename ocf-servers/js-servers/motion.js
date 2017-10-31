@@ -164,7 +164,7 @@ function retrieveHandler(request) {
 }
 
 device.device = Object.assign(device.device, {
-    name: 'Smart Home Motion (' + namedesc + ')',
+    name: 'Smart Home Motion (' + desc + ')',
     coreSpecVersion: 'core.1.1.0',
     dataModels: ['res.1.1.0']
 });

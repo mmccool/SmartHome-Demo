@@ -19,7 +19,8 @@ var device = require('iotivity-node'),
     notifyObserversTimeoutId,
     exitId,
     resourceTypeName = 'oic.r.sensor.illuminance',
-    resourceInterfaceName = '/a/illuminance',
+    resourceInterfaceBaseName = '/a/illuminance',
+    resourceInterfaceName,
     hasUpdate = false,
     observerCount = 0,
     lux = 0.0,
@@ -28,22 +29,43 @@ var device = require('iotivity-node'),
 // Default pin (analog)
 var pin = 3;
 
+// Description (added to URL to distinguish multiple devices of the same type)
+var desc = "";  // arg 2, if given                                         
+var namedesc = "illuminance";                                                 
+                                                                           
+// Helper function for debugging.  Include "illuminance" in NODE_DEBUG to enable
+function dlog() {                     
+    var args = Array.prototype.slice.apply(arguments);                        
+    debuglog('(' + desc + ') ' + args.join());
+}                                              
+ 
 // Parse command-line arguments
-var args = process.argv.slice(2);
-args.forEach(function(entry) {
-    if (entry === "--simulation" || entry === "-s") {
-        simulationMode = true;
-    }
-    else {
-        pin = parseInt(entry,10);
-    }
-});
+var args = process.argv.slice(2);                                     
+dlog("args: " + args);                                              
+if ("--simulation" in args) {                                              
+  args.splice(args.indexOf("--simulation"),1);                        
+  simulationMode = true;         
+}
+if ("-s" in args) {                   
+  args.splice(args.indexOf("-s"),1);           
+  simulationMode = true;
+}             
+if (args.length > 0) {
+  pin = parseInt(args[0],10);
+}                       
+if (args.length > 1) {             
+  desc = args[1];                        
+}                         
+dlog('parsed args: ' + pin + ' ' + desc);
+namedesc += desc;
+resourceInterfaceName = resourceInterfaceBaseName + desc;
+dlog('resource: ' + resourceInterfaceName);
 
 if (simulationMode) {
-    debuglog('Running in simulation mode');
+    dlog('Running in simulation mode');
 }
 else {
-    debuglog('Running on HW using A' + pin);
+    dlog('Running on HW using A' + pin);
 };
 
 // Require the MRAA library
@@ -53,18 +75,17 @@ if (!simulationMode) {
         mraa = require('mraa');
     }
     catch (e) {
-        debuglog('No mraa module: ', e.message);
-        debuglog('Automatically switching to simulation mode');
+        dlog('No mraa module: ', e.message);
+        dlog('Automatically switching to simulation mode');
         simulationMode = true;
     }
 }
 
 // Setup ambient light sensor pin.
 function setupHardware() {
-    if (!mraa)
-        return;
-
-    sensorPin = new mraa.Aio(pin);
+    if (mraa) {
+        sensorPin = new mraa.Aio(pin);
+    }
 }
 
 // This function construct the payload and returns when
@@ -90,7 +111,7 @@ function getProperties() {
     // Format the payload.
     var properties = {
         rt: resourceTypeName,
-        id: 'illuminance',
+        id: namedesc,
         illuminance: lux
     };
 
@@ -106,10 +127,10 @@ function notifyObservers() {
         illuminanceResource.properties = properties;
         hasUpdate = false;
 
-        debuglog('Send the lux value: ', lux);
+        dlog('Send the lux value: ', lux);
         illuminanceResource.notify().catch(
             function(error) {
-                debuglog('Failed to notify observers: ', error);
+                dlog('Failed to notify observers: ', error);
                 if (error.observers.length === 0) {
                     observerCount = 0;
                     if (notifyObserversTimeoutId) {
@@ -140,13 +161,13 @@ function retrieveHandler(request) {
 }
 
 device.device = Object.assign(device.device, {
-    name: 'Smart Home Illuminance Sensor',
+    name: 'Smart Home Illuminance (' + desc + ')',
     coreSpecVersion: 'core.1.1.0',
     dataModels: ['res.1.1.0']
 });
 
 function handleError(error) {
-    debuglog('Failed to send response with error: ', error);
+    dlog('Failed to send response with error: ', error);
 }
 
 device.platform = Object.assign(device.platform, {
@@ -160,7 +181,7 @@ if (device.device.uuid) {
     // Setup Illuminance sensor pin.
     setupHardware();
 
-    debuglog('Create Illuminance sensor resource.');
+    dlog('Create resource.');
 
     // Register illuminance resource
     device.server.register({
@@ -172,20 +193,20 @@ if (device.device.uuid) {
         properties: getProperties()
     }).then(
         function(resource) {
-            debuglog('register() resource successful');
+            dlog('register() resource successful');
             illuminanceResource = resource;
 
             // Add event handlers for each supported request type
             resource.onretrieve(retrieveHandler);
         },
         function(error) {
-            debuglog('register() resource failed with: ', error);
+            dlog('register() resource failed with: ', error);
         });
 }
 
 // Cleanup when interrupted
 function exitHandler() {
-    debuglog('Delete Illuminance sensor Resource.');
+    dlog('Delete resource.');
 
     if (exitId)
         return;
@@ -193,10 +214,10 @@ function exitHandler() {
     // Unregister resource.
     illuminanceResource.unregister().then(
         function() {
-            debuglog('unregister() resource successful');
+            dlog('unregister() resource successful');
         },
         function(error) {
-            debuglog('unregister() resource failed with: ', error);
+            dlog('unregister() resource failed with: ', error);
         });
 
     // Exit

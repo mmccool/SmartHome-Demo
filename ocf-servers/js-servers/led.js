@@ -32,7 +32,7 @@ var pin = 2;    // arg 1, if given
 var desc = "";  // arg 2, if given
 var namedesc = "led";  
 
-// Helper function for debugging.  Include "motion" in NODE_DEBUG to enable
+// Helper function for debugging.  Include "led" in NODE_DEBUG to enable
 function dlog() {                                                     
     var args = Array.prototype.slice.apply(arguments);          
     debuglog('(' + desc + ') ' + args.join());                         
