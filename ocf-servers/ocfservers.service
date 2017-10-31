@@ -1,0 +1,13 @@
+[Unit]
+Description=OCF Servers
+Requires=network.target
+After=network.target
+
+[Service]
+#Restart=always
+#RestartSec=20
+User=root
+ExecStart=/bin/bash /opt/SmartHome-Demo/ocf-servers/start-ocf-servers.sh
+
+[Install]
+WantedBy=multi-user.target
