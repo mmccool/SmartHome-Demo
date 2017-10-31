@@ -13,28 +13,55 @@
 // limitations under the License.
 
 var device = require('iotivity-node'),
-    debuglog = require('util').debuglog('rgb_led'),
+    debuglog = require('util').debuglog('rgbled'),
     rgbLEDResource,
     sensorPin,
     sensorState = false,
     exitId,
     observerCount = 0,
     resourceTypeName = 'oic.r.colour.rgb',
-    resourceInterfaceName = '/a/rgbled',
+    resourceInterfaceBaseName = '/a/rgbled',
+    resourceInterfaceName,
     range = [0,255],
     rgbValue = [0,0,0],
     clockPin,
     dataPin,
     simulationMode = false;
 
-// Parse command-line arguments
-var args = process.argv.slice(2);
-args.forEach(function(entry) {
-    if (entry === "--simulation" || entry === "-s") {
-        simulationMode = true;
-        debuglog('Running in simulation mode');
-    };
-});
+// Default pin (digital)                                                      
+var pin = 7;    // arg 1, if given; also uses pin + 1                                            
+                                                                           
+// Description (added to URL to distinguish multiple devices of the same type)
+var desc = "";  // arg 2, if given                                            
+var namedesc = "led";                                                      
+                                                                              
+// Helper function for debugging.  Include "led" in NODE_DEBUG to enable   
+function dlog() {                                                       
+    var args = Array.prototype.slice.apply(arguments);
+    debuglog('(' + desc + ') ' + args.join());                                
+}  
+
+// Parse command-line arguments                                            
+var args = process.argv.slice(2);                                             
+dlog("args: " + args);                                                        
+if ("--simulation" in args) {                                              
+  args.splice(args.indexOf("--simulation"),1);                                
+  simulationMode = true;                                                   
+}                                                                       
+if ("-s" in args) {                                   
+  args.splice(args.indexOf("-s"),1);                                          
+  simulationMode = true;                      
+}                                                     
+if (args.length > 0) {                                                        
+  pin = parseInt(args[0],10);                                           
+}                                             
+if (args.length > 1) {                                                        
+  desc = args[1];                                                       
+}                                             
+dlog('parsed args: ' + pin + ' ' + desc);                                     
+namedesc += desc;                                                       
+resourceInterfaceName = resourceInterfaceBaseName + desc;
+dlog('resource: ' + resourceInterfaceName);                                   
 
 // Require the MRAA library
 var mraa = '';
@@ -43,25 +70,26 @@ if (!simulationMode) {
         mraa = require('mraa');
     }
     catch (e) {
-        debuglog('No mraa module: ', e.message);
-        debuglog('Automatically switching to simulation mode');
+        dlog('No mraa module: ', e.message);
+        dlog('Automatically switching to simulation mode');
         simulationMode = true;
     }
 }
 
-// Setup LED pin.
+// Setup LED pins.
 function setupHardware() {
     if (!mraa)
         return;
 
-    clockPin = new mraa.Gpio(7);
+    clockPin = new mraa.Gpio(pin);
     clockPin.dir(mraa.DIR_OUT);
-    dataPin = new mraa.Gpio(8);
+    dataPin = new mraa.Gpio(pin+1);
     dataPin.dir(mraa.DIR_OUT);
 
     setColourRGB(0, 0, 0);
 }
 
+// pulse clock pin (0->transition triggers data transfer)
 function clk() {
     if (!mraa)
         return;
@@ -131,8 +159,8 @@ function checkColour(colour) {
     return false;
 }
 
-// This function parce the incoming Resource properties
-// and change the sensor state.
+// This function parses the incoming Resource properties
+// and changes the sensor state.
 function updateProperties(properties) {
     var input = properties.rgbValue;
     if (!input)
@@ -148,21 +176,21 @@ function updateProperties(properties) {
         setColourRGB(r, g, b);
     rgbValue = input;
 
-    debuglog('Update received. value: ', rgbValue);
+    dlog('Update received. value: ', rgbValue);
 }
 
-// This function construct the payload and returns when
+// This function constructs the payload and returns when
 // the GET request received from the client.
 function getProperties() {
     // Format the payload.
     var properties = {
         rt: resourceTypeName,
-        id: 'rgbled',
+        id: namedesc,
         rgbValue: rgbValue,
         range: range
     };
 
-    debuglog('Send the response. value: ', rgbValue);
+    dlog('Send the response. value: ', rgbValue);
     return properties;
 }
 
@@ -172,7 +200,7 @@ function notifyObservers(request) {
 
     rgbLEDResource.notify().catch(
         function(error) {
-            debuglog('Notify failed with error: ', error);
+            dlog('Notify failed with error: ', error);
         });
 }
 
@@ -198,13 +226,13 @@ function updateHandler(request) {
 }
 
 device.device = Object.assign(device.device, {
-    name: 'Smart Home RGB LED',
+    name: 'Smart Home RGB LED (' + desc + ')',
     coreSpecVersion: 'core.1.1.0',
     dataModels: ['res.1.1.0']
 });
 
 function handleError(error) {
-    debuglog('Failed to send response with error: ', error);
+    dlog('Failed to send response with error: ', error);
 }
 
 device.platform = Object.assign(device.platform, {
@@ -218,9 +246,9 @@ if (device.device.uuid) {
     // Setup RGB LED sensor pin.
     setupHardware();
 
-    debuglog('Create RGB LED resource.');
+    dlog('Create resource.');
 
-    // Register RGB LED resource
+    // Register resource
     device.server.register({
         resourcePath: resourceInterfaceName,
         resourceTypes: [resourceTypeName],
@@ -230,7 +258,7 @@ if (device.device.uuid) {
         properties: getProperties()
     }).then(
         function(resource) {
-            debuglog('register() resource successful');
+            dlog('register() resource successful');
             rgbLEDResource = resource;
 
             // Add event handlers for each supported request type
@@ -238,13 +266,13 @@ if (device.device.uuid) {
             resource.onupdate(updateHandler);
         },
         function(error) {
-            debuglog('register() resource failed with: ', error);
+            dlog('register() resource failed with: ', error);
         });
 }
 
 // Cleanup when interrupted
 function exitHandler() {
-    debuglog('Delete RGB LED Resource.');
+    dlog('Delete resource.');
 
     if (exitId)
         return;
@@ -258,10 +286,10 @@ function exitHandler() {
     // Unregister resource.
     rgbLEDResource.unregister().then(
         function() {
-            debuglog('unregister() resource successful');
+            dlog('unregister() resource successful');
         },
         function(error) {
-            debuglog('unregister() resource failed with: ', error);
+            dlog('unregister() resource failed with: ', error);
         });
 
     // Exit

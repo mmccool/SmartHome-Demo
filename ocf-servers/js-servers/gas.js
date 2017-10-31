@@ -18,7 +18,8 @@ var device = require('iotivity-node'),
     sensorPin,
     gasDensity = 0,
     resourceTypeName = 'oic.r.sensor.carbondioxide',
-    resourceInterfaceName = '/a/gas',
+    resourceInterfaceBaseName = '/a/gas',
+    resourceInterfaceName,
     notifyObserversTimeoutId,
     exitId,
     observerCount = 0,
@@ -26,14 +27,40 @@ var device = require('iotivity-node'),
     gasDetected = false,
     simulationMode = false;
 
-// Parse command-line arguments
-var args = process.argv.slice(2);
-args.forEach(function(entry) {
-    if (entry === "--simulation" || entry === "-s") {
-        simulationMode = true;
-        debuglog('Running in simulation mode');
-    };
-});
+// Default pin (analog)                                                   
+var pin = 0;    // arg 1, if given                                    
+                                               
+// Description (added to URL to distinguish multiple devices of the same type)
+var desc = "";  // arg 2, if given       
+var namedesc = "gas";                          
+                                                                              
+// Helper function for debugging.  Include "led" in NODE_DEBUG to enable
+function dlog() {                  
+    var args = Array.prototype.slice.apply(arguments);                        
+    debuglog('(' + desc + ') ' + args.join());                          
+}
+
+// Parse command-line arguments                                            
+var args = process.argv.slice(2);                                     
+dlog("args: " + args);                                                        
+if ("--simulation" in args) {                                              
+  args.splice(args.indexOf("--simulation"),1);                        
+  simulationMode = true;                                                   
+}                                                                       
+if ("-s" in args) {                            
+  args.splice(args.indexOf("-s"),1);                                          
+  simulationMode = true;                      
+}                                              
+if (args.length > 0) {                                                        
+  pin = parseInt(args[0],10);                                           
+}                                             
+if (args.length > 1) {                                                        
+  desc = args[1];                                                       
+}                                             
+dlog('parsed args: ' + pin + ' ' + desc);                                     
+namedesc += desc;                                                       
+resourceInterfaceName = resourceInterfaceBaseName + desc;
+dlog('resource: ' + resourceInterfaceName);        
 
 // Require the MRAA library
 var mraa = '';
@@ -42,8 +69,8 @@ if (!simulationMode) {
         mraa = require('mraa');
     }
     catch (e) {
-        debuglog('No mraa module: ', e.message);
-        debuglog('Automatically switching to simulation mode');
+        dlog('No mraa module: ', e.message);
+        dlog('Automatically switching to simulation mode');
         simulationMode = true;
     }
 }
@@ -51,7 +78,7 @@ if (!simulationMode) {
 // Setup Gas sensor pin.
 function setupHardware() {
     if (mraa) {
-        sensorPin = new mraa.Aio(0);
+        sensorPin = new mraa.Aio(pin);
         sensorPin.setBit(10);
     }
 }
@@ -63,7 +90,7 @@ function getProperties() {
         val = sensorPin.read();
         density = val * 500 / 1024;
 
-        debuglog('density: %d, threshold: 70', density);
+        dlog('density: %d, threshold: 70', density);
         if (density != gasDensity) {
             if (density > 70 && gasDensity < 70) {
                 gasDensity = density;
@@ -84,7 +111,7 @@ function getProperties() {
     // Format the properties.
     var properties = {
         rt: resourceTypeName,
-        id: 'gasSensor',
+        id: namedesc,
         value: gasDetected
     };
 
@@ -100,10 +127,10 @@ function notifyObservers() {
         gasResource.properties = properties;
         hasUpdate = false;
 
-        debuglog('Send the response: ', gasDetected);
+        dlog('Send the response: ', gasDetected);
         gasResource.notify().catch(
             function(error) {
-                debuglog('Failed to notify observers with error: ', error);
+                dlog('Failed to notify observers with error: ', error);
                 if (error.observers.length === 0) {
                     observerCount = 0;
                     if (notifyObserversTimeoutId) {
@@ -135,13 +162,13 @@ function retrieveHandler(request) {
 }
 
 device.device = Object.assign(device.device, {
-    name: 'Smart Home Gas Sensor',
+    name: 'Smart Home Gas (' + desc + ')',
     coreSpecVersion: 'core.1.1.0',
     dataModels: ['res.1.1.0']
 });
 
 function handleError(error) {
-    debuglog('Failed to send response with error: ', error);
+    dlog('Failed to send response with error: ', error);
 }
 
 device.platform = Object.assign(device.platform, {
@@ -155,7 +182,7 @@ if (device.device.uuid) {
     // Setup Gas sensor pin.
     setupHardware();
 
-    debuglog('Create Gas resource.');
+    dlog('Create resource.');
 
     // Register Gas resource
     device.server.register({
@@ -167,20 +194,20 @@ if (device.device.uuid) {
         properties: getProperties()
     }).then(
         function(resource) {
-            debuglog('register() resource successful');
+            dlog('register() resource successful');
             gasResource = resource;
 
             // Add event handlers for each supported request type
             resource.onretrieve(retrieveHandler);
         },
         function(error) {
-            debuglog('register() resource failed with: ', error);
+            dlog('register() resource failed with: ', error);
         });
 }
 
 // Cleanup when interrupted
 function exitHandler() {
-    debuglog('Delete Gas Resource.');
+    dlog('Delete resource.');
 
     if (exitId)
         return;
@@ -188,10 +215,10 @@ function exitHandler() {
     // Unregister resource.
     gasResource.unregister().then(
         function() {
-            debuglog('unregister() resource successful');
+            dlog('unregister() resource successful');
         },
         function(error) {
-            debuglog('unregister() resource failed with: ', error);
+            dlog('unregister() resource failed with: ', error);
         });
 
     // Exit

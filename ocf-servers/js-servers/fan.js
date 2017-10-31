@@ -20,18 +20,46 @@ var device = require('iotivity-node'),
     observerCount = 0,
     sensorState = false,
     resourceTypeName = 'oic.r.fan',
-    resourceInterfaceName = '/a/fan',
+    resourceInterfaceBaseName = '/a/fan',
+    resourceInterfaceName,
     simulationMode = false;
 
-// Parse command-line arguments
-var args = process.argv.slice(2);
-args.forEach(function(entry) {
-    if (entry === "--simulation" || entry === "-s") {
-        simulationMode = true;
-        debuglog('Running in simulation mode');
-    };
-});
-
+                                                                           
+// Default pin (digital)                                                      
+var pin = 9;    // arg 1, if given                                            
+                                                                           
+// Description (added to URL to distinguish multiple devices of the same type)
+var desc = "";  // arg 2, if given                                            
+var namedesc = "led";                                                      
+                                                                      
+// Helper function for debugging.  Include "led" in NODE_DEBUG to enable   
+function dlog() {                                                       
+    var args = Array.prototype.slice.apply(arguments);
+    debuglog('(' + desc + ') ' + args.join());                                
+}                                             
+  
+// Parse command-line arguments                                            
+var args = process.argv.slice(2);                                             
+dlog("args: " + args);                                                        
+if ("--simulation" in args) {                                              
+  args.splice(args.indexOf("--simulation"),1);                        
+  simulationMode = true;                                                   
+}                                                                       
+if ("-s" in args) {                                   
+  args.splice(args.indexOf("-s"),1);                                          
+  simulationMode = true;                      
+}                                              
+if (args.length > 0) {                                                        
+  pin = parseInt(args[0],10);                                           
+}                                             
+if (args.length > 1) {                                                        
+  desc = args[1];                                                       
+}                                             
+dlog('parsed args: ' + pin + ' ' + desc);                                     
+namedesc += desc;                                                       
+resourceInterfaceName = resourceInterfaceBaseName + desc;
+dlog('resource: ' + resourceInterfaceName);                                   
+                                    
 // Require the MRAA library
 var mraa = '';
 if (!simulationMode) {
@@ -39,8 +67,8 @@ if (!simulationMode) {
         mraa = require('mraa');
     }
     catch (e) {
-        debuglog('No mraa module: ', e.message);
-        debuglog('Automatically switching to simulation mode');
+        dlog('No mraa module: ', e.message);
+        dlog('Automatically switching to simulation mode');
         simulationMode = true;
     }
 }
@@ -48,7 +76,7 @@ if (!simulationMode) {
 // Setup Fan sensor pin.
 function setupHardware() {
     if (mraa) {
-        sensorPin = new mraa.Gpio(9);
+        sensorPin = new mraa.Gpio(pin);
         sensorPin.dir(mraa.DIR_OUT);
         sensorPin.write(0);
     }
@@ -59,7 +87,7 @@ function setupHardware() {
 function updateProperties(properties) {
     sensorState = properties.value;
 
-    debuglog('Update received. value: ', sensorState);
+    dlog('Update received. value: ', sensorState);
 
     if (simulationMode)
         return;
@@ -76,11 +104,11 @@ function getProperties() {
     // Format the payload.
     var properties = {
         rt: resourceTypeName,
-        id: 'boxFan',
+        id: namedesc,
         value: sensorState
     };
 
-    debuglog('Send the response. value: ', sensorState);
+    dlog('Send the response. value: ', sensorState);
     return properties;
 }
 
@@ -90,7 +118,7 @@ function notifyObservers() {
 
     fanResource.notify().catch(
         function(error) {
-            debuglog('Notify failed with error: ', error);
+            dlog('Notify failed with error: ', error);
         });
 }
 
@@ -116,13 +144,13 @@ function updateHandler(request) {
 }
 
 device.device = Object.assign(device.device, {
-    name: 'Smart Home Fan',
+    name: 'Smart Home Fan (' + desc + ')',
     coreSpecVersion: 'core.1.1.0',
     dataModels: ['res.1.1.0']
 });
 
 function handleError(error) {
-    debuglog('Failed to send response with error ', error);
+    dlog('Failed to send response with error ', error);
 }
 
 device.platform = Object.assign(device.platform, {
@@ -136,7 +164,7 @@ if (device.device.uuid) {
     // Setup Fan sensor pin.
     setupHardware();
 
-    debuglog('Create Fan resource.');
+    dlog('Create resource.');
 
     // Register Fan resource
     device.server.register({
@@ -148,7 +176,7 @@ if (device.device.uuid) {
         properties: getProperties()
     }).then(
         function(resource) {
-            debuglog('register() resource successful');
+            dlog('register() resource successful');
             fanResource = resource;
 
             // Add event handlers for each supported request type
@@ -156,13 +184,13 @@ if (device.device.uuid) {
             resource.onupdate(updateHandler);
         },
         function(error) {
-            debuglog('register() resource failed with: ', error);
+            dlog('register() resource failed with: ', error);
         });
 }
 
 // Cleanup when interrupted
 function exitHandler() {
-    debuglog('Delete Fan Resource.');
+    dlog('Delete resource.');
 
     if (exitId)
         return;
@@ -174,10 +202,10 @@ function exitHandler() {
     // Unregister resource.
     fanResource.unregister().then(
         function() {
-            debuglog('unregister() resource successful');
+            dlog('unregister() resource successful');
         },
         function(error) {
-            debuglog('unregister() resource failed with: ', error);
+            dlog('unregister() resource failed with: ', error);
         });
 
     // Exit
