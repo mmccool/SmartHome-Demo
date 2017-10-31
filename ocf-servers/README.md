@@ -6,11 +6,31 @@ A number of JavaScript-based OCF servers are provided in the [`js-servers`](./js
 * [noble](https://www.npmjs.com/package/noble) (only for some)
 
 ## Docker container startup script
-The [`start-ocf-servers-in-docker.sh`](./start-ocf-servers-in-docker.sh) script is used when building a Docker container that runs Smart Devices (sensors) as OCF servers. These IoT Smart Devices are simulated devices implemented by the scripts in the `ocf-servers/js-servers/` folder. All scripts accept the `-s` (or `--simulation`) argument that forces them to start in simulation mode, this is what we use when running in a Docker container.
+The [`start-ocf-servers-in-docker.sh`](./start-ocf-servers-in-docker.sh) 
+script is used when building a Docker container that runs Smart Devices 
+(sensors) as OCF servers. 
+These IoT Smart Devices are simulated devices implemented by the scripts 
+in the `ocf-servers/js-servers/` folder. 
+All scripts accept the `-s` (or `--simulation`) argument that forces them 
+to start in simulation mode, 
+this is what we use when running in a Docker container.
 
 For more details, please take a look at the [Dockerfile](./Dockerfile).
 
-## Device startup script
-A script that can use the same configuration file as the Docker script, but can start the scripts on an actual device and can map to physical pin numbers.
-
 [Docker]: https://www.docker.com/
+
+## Device startup script
+The [`start-ocf-servers.sh`](./start-ocf-servers.sh) 
+script can use the same configuration file as the Docker script, 
+but can start the scripts on an actual device and can map to physical
+pin numbers.
+
+It is also suitable for automatic startup under systemd.  A suggested
+service file has been provided.  Copy to `/etc/systemd/system` and enable
+the `ocfservers.service` to get the devices in the configuration file to 
+start at boot.
+
+    cp ocfservers.service /etc/systemd/system
+    systemctl enable ocfservers.service
+    systemctl start ocfservers.service
+
