@@ -13,7 +13,7 @@
 // limitations under the License.
 
 var device = require('iotivity-node'),
-    debuglog = require('util').debuglog('ambient_light'),
+    debuglog = require('util').debuglog('illuminance'),
     illuminanceResource,
     sensorPin,
     notifyObserversTimeoutId,
@@ -25,14 +25,26 @@ var device = require('iotivity-node'),
     lux = 0.0,
     simulationMode = false;
 
+// Default pin (analog)
+var pin = 3;
+
 // Parse command-line arguments
 var args = process.argv.slice(2);
 args.forEach(function(entry) {
     if (entry === "--simulation" || entry === "-s") {
         simulationMode = true;
-        debuglog('Running in simulation mode');
-    };
+    }
+    else {
+        pin = parseInt(entry,10);
+    }
 });
+
+if (simulationMode) {
+    debuglog('Running in simulation mode');
+}
+else {
+    debuglog('Running on HW using A' + pin);
+};
 
 // Require the MRAA library
 var mraa = '';
@@ -52,7 +64,7 @@ function setupHardware() {
     if (!mraa)
         return;
 
-    sensorPin = new mraa.Aio(3);
+    sensorPin = new mraa.Aio(pin);
 }
 
 // This function construct the payload and returns when

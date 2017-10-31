@@ -20,17 +20,46 @@ var device = require('iotivity-node'),
     observerCount = 0,
     sensorState = false,
     resourceTypeName = 'oic.r.led',
-    resourceInterfaceName = '/a/led',
+    resourceInterfaceBaseName = '/a/',
+    resourceInterfaceName,
     simulationMode = false;
+
+// Default pin (digital)
+var pin = 2;    // arg 1, if given
+
+// Description (added to URL to distinguish multiple devices of the same type)
+var desc = "";  // arg 2, if given
+var namedesc = "led";  
 
 // Parse command-line arguments
 var args = process.argv.slice(2);
-args.forEach(function(entry) {
-    if (entry === "--simulation" || entry === "-s") {
-        simulationMode = true;
-        debuglog('Running in simulation mode');
-    };
-});
+debuglog("args: "+args);
+var ii = 0;
+if ("--simulation" in args) {
+  args.splice(args.indexOf("--simulation"),1);
+  simulationMode = true;
+}
+if ("-s" in args) {
+  args.splice(args.indexOf("-s"),1);
+  simulationMode = true;
+}
+if (args.length > 0) {
+  pin = parseInt(args[0],10);
+}
+if (args.length > 1) {
+  desc = args[1];
+}
+debuglog('args: ' + pin + ' ' + desc);
+namedesc += desc;
+resourceInterfaceName = resourceInterfaceBaseName + namedesc;
+debuglog('resource: ' + resourceInterfaceName);
+
+if (simulationMode) {
+    debuglog('Running in simulation mode');
+}
+else {
+    debuglog('Running on HW using D' + pin);
+};
 
 // Require the MRAA library
 var mraa = '';
@@ -48,13 +77,13 @@ if (!simulationMode) {
 // Setup LED sensor pin.
 function setupHardware() {
     if (mraa) {
-        sensorPin = new mraa.Gpio(2);
+        sensorPin = new mraa.Gpio(pin);
         sensorPin.dir(mraa.DIR_OUT);
         sensorPin.write(0);
     }
 }
 
-// This function parce the incoming Resource properties
+// This function parses the incoming Resource properties
 // and change the sensor state.
 function updateProperties(properties) {
     sensorState = properties.value;
@@ -76,7 +105,7 @@ function getProperties() {
     // Format the payload.
     var properties = {
         rt: resourceTypeName,
-        id: 'led',
+        id: namedesc, // or just the name?
         value: sensorState
     };
 
@@ -119,7 +148,7 @@ function updateHandler(request) {
 }
 
 device.device = Object.assign(device.device, {
-    name: 'Smart Home LED',
+    name: 'Smart Home LED (' + desc + ')',
     coreSpecVersion: 'core.1.1.0',
     dataModels: ['res.1.1.0']
 });
@@ -140,7 +169,7 @@ if (device.device.uuid) {
     // Setup LED pin.
     setupHardware();
 
-    debuglog('Create LED resource.');
+    debuglog('Create LED resource ' + resourceInterfaceName);
 
     // Register LED resource
     device.server.register({
@@ -184,7 +213,7 @@ function exitHandler() {
             debuglog('unregister() resource failed with: ', error);
         });
 
-    // Exit
+    // Give 1s for cleanup, then Exit
     exitId = setTimeout(function() { process.exit(0); }, 1000);
 }
 

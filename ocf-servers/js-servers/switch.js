@@ -26,14 +26,26 @@ var device = require('iotivity-node'),
     sensorState = false,
     simulationMode = false;
 
+// Default pin (digital)
+var pin = 4;
+
 // Parse command-line arguments
 var args = process.argv.slice(2);
 args.forEach(function(entry) {
     if (entry === "--simulation" || entry === "-s") {
         simulationMode = true;
-        debuglog('Running in simulation mode');
-    };
+    }
+    else {
+        pin = parseInt(entry,10);
+    }
 });
+
+if (simulationMode) {
+    debuglog('Running in simulation mode');
+}
+else {
+    debuglog('Running on HW using D' + pin);
+}
 
 // Require the MRAA library
 var mraa = '';
@@ -53,7 +65,7 @@ function setupHardware() {
     if (!mraa)
         return;
 
-    sensorPin = new mraa.Gpio(4);
+    sensorPin = new mraa.Gpio(pin);
     sensorPin.dir(mraa.DIR_IN);
 }
 

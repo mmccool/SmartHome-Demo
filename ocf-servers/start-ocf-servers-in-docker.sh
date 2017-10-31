@@ -7,7 +7,7 @@ PROJ_HOME=/opt/SmartHome-Demo
 OCF_DIR=$PROJ_HOME/ocf-servers/js-servers
 
 # configuration file name
-CONFIG_FILE=$PROJ_HOME/ocf-servers/ocf-server.conf
+CONFIG_FILE=$PROJ_HOME/ocf-servers/ocf-servers-in-docker.conf
 
 # Print out container IP address
 echo "This container IP address is: `hostname -i`"

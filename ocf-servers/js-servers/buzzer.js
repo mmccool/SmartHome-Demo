@@ -25,14 +25,26 @@ var device = require('iotivity-node'),
     resourceInterfaceName = '/a/buzzer',
     simulationMode = false;
 
+// Default pin (digital)
+var pin = 6;
+
 // Parse command-line arguments
 var args = process.argv.slice(2);
 args.forEach(function(entry) {
     if (entry === "--simulation" || entry === "-s") {
         simulationMode = true;
-        debuglog('Running in simulation mode');
-    };
+    }
+    else {
+        pin = parseInt(entry,10);
+    }
 });
+
+if (simulationMode) {
+    debuglog('Running in simulation mode');
+}
+else {
+    debuglog('Running on HW using D' + pin);
+}
 
 // Require the MRAA library
 var mraa = '';
@@ -50,7 +62,7 @@ if (!simulationMode) {
 // Setup Buzzer sensor pin.
 function setupHardware() {
     if (mraa) {
-        sensorPin = new mraa.Gpio(6);
+        sensorPin = new mraa.Gpio(pin);
         sensorPin.dir(mraa.DIR_OUT);
         sensorPin.write(0);
     }

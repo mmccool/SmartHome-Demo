@@ -27,6 +27,9 @@ var device = require('iotivity-node'),
     desiredTemperature = {},
     simulationMode = false;
 
+// Default pin (analog)
+var pin = 1;
+
 // Units for the temperature.
 var units = {
     C: 'C',
@@ -39,9 +42,18 @@ var args = process.argv.slice(2);
 args.forEach(function(entry) {
     if (entry === "--simulation" || entry === "-s") {
         simulationMode = true;
-        debuglog('Running in simulation mode');
-    };
+    }
+    else {
+        pin = parseInt(entry,10);
+    }
 });
+
+if (simulationMode) {
+    debuglog('Running in simulation mode');
+}
+else {
+    debuglog('Running on HW using pin A' + pin);
+}
 
 
 // Require the MRAA library.
@@ -60,7 +72,7 @@ if (!simulationMode) {
 // Setup Temperature sensor pin.
 function setupHardware() {
     if (mraa) {
-        sensorPin = new mraa.Aio(1);
+        sensorPin = new mraa.Aio(pin);
     }
 }
 
