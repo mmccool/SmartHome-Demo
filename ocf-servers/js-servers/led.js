@@ -20,9 +20,10 @@ var device = require('iotivity-node'),
     observerCount = 0,
     sensorState = false,
     resourceTypeName = 'oic.r.led',
-    resourceInterfaceBaseName = '/a/',
+    resourceInterfaceBaseName = '/a/led',
     resourceInterfaceName,
     simulationMode = false;
+
 
 // Default pin (digital)
 var pin = 2;    // arg 1, if given
@@ -31,10 +32,15 @@ var pin = 2;    // arg 1, if given
 var desc = "";  // arg 2, if given
 var namedesc = "led";  
 
+// Helper function for debugging.  Include "motion" in NODE_DEBUG to enable
+function dlog() {                                                     
+    var args = Array.prototype.slice.apply(arguments);          
+    debuglog('(' + desc + ') ' + args.join());                         
+}  
+
 // Parse command-line arguments
 var args = process.argv.slice(2);
-debuglog("args: "+args);
-var ii = 0;
+dlog("args: " + args);
 if ("--simulation" in args) {
   args.splice(args.indexOf("--simulation"),1);
   simulationMode = true;
@@ -49,16 +55,16 @@ if (args.length > 0) {
 if (args.length > 1) {
   desc = args[1];
 }
-debuglog('args: ' + pin + ' ' + desc);
+dlog('parsed args: ' + pin + ' ' + desc);
 namedesc += desc;
-resourceInterfaceName = resourceInterfaceBaseName + namedesc;
-debuglog('resource: ' + resourceInterfaceName);
+resourceInterfaceName = resourceInterfaceBaseName + desc;
+dlog('resource: ' + resourceInterfaceName);
 
 if (simulationMode) {
-    debuglog('Running in simulation mode');
+    dlog('Running in simulation mode');
 }
 else {
-    debuglog('Running on HW using D' + pin);
+    dlog('Running on HW using D' + pin);
 };
 
 // Require the MRAA library
@@ -68,8 +74,8 @@ if (!simulationMode) {
         mraa = require('mraa');
     }
     catch (e) {
-        debuglog('No mraa module: ', e.message);
-        debuglog('Automatically switching to simulation mode');
+        dlog('No mraa module: ', e.message);
+        dlog('Automatically switching to simulation mode');
         simulationMode = true;
     }
 }
@@ -88,7 +94,7 @@ function setupHardware() {
 function updateProperties(properties) {
     sensorState = properties.value;
 
-    debuglog('Update received. value: ', sensorState);
+    dlog('Update received. value: ', sensorState);
 
     if (simulationMode)
         return;
@@ -105,11 +111,11 @@ function getProperties() {
     // Format the payload.
     var properties = {
         rt: resourceTypeName,
-        id: namedesc, // or just the name?
+        id: namedesc,
         value: sensorState
     };
 
-    debuglog('Send the response. value: ', sensorState);
+    dlog('Send the response. value: ', sensorState);
     return properties;
 }
 
@@ -119,10 +125,10 @@ function notifyObservers(request) {
 
     ledResource.notify().then(
         function() {
-            debuglog('Successfully notified observers.');
+            dlog('Successfully notified observers.');
         },
         function(error) {
-            debuglog('Notify failed with error: ', error);
+            dlog('Notify failed with error: ', error);
         });
 }
 
@@ -154,7 +160,7 @@ device.device = Object.assign(device.device, {
 });
 
 function handleError(error) {
-    debuglog('LED: Failed to send response with error: ', error);
+    dlog('Failed to send response with error: ', error);
 }
 
 device.platform = Object.assign(device.platform, {
@@ -169,7 +175,7 @@ if (device.device.uuid) {
     // Setup LED pin.
     setupHardware();
 
-    debuglog('Create LED resource ' + resourceInterfaceName);
+    dlog('Create resource ' + resourceInterfaceName);
 
     // Register LED resource
     device.server.register({
@@ -181,7 +187,7 @@ if (device.device.uuid) {
         properties: getProperties()
     }).then(
         function(resource) {
-            debuglog('register() resource successful');
+            dlog('register() resource successful');
             ledResource = resource;
 
             // Add event handlers for each supported request type
@@ -189,13 +195,13 @@ if (device.device.uuid) {
             resource.onupdate(updateHandler);
         },
         function(error) {
-            debuglog('register() resource failed with: ', error);
+            dlog('register() resource failed with: ', error);
         });
 }
 
 // Cleanup when interrupted
 function exitHandler() {
-    debuglog('Delete LED Resource.');
+    dlog('Delete resource.');
 
     if (exitId)
         return;
@@ -207,10 +213,10 @@ function exitHandler() {
     // Unregister resource.
     ledResource.unregister().then(
         function() {
-            debuglog('unregister() resource successful');
+            dlog('unregister() resource successful');
         },
         function(error) {
-            debuglog('unregister() resource failed with: ', error);
+            dlog('unregister() resource failed with: ', error);
         });
 
     // Give 1s for cleanup, then Exit

@@ -21,7 +21,7 @@ echo "This device's IP address is: `hostname -i`"
 export NODE_PATH=$PROJ_HOME/node_modules/:/usr/lib/node_modules:$NODE_PATH
 
 # debug flags
-NODE_DEBUG="led buzzer"
+NODE_DEBUG="led button toggle buzzer motion"
 
 parse_error=0
 # Check if the configuration file exists
@@ -51,13 +51,13 @@ then
         pin=${aline[1]};
         echo "  pin: $pin"
 
-        # extract description (if not specified, "0" is used)
+        # extract description (if not specified, "" is used)
         # Note only one word is taken... will be used in URL
         if [ $aline_len -gt 2 ];
         then
           desc=${aline[2]}
         else
-          desc="0"
+          desc=""
         fi
         echo "  desc: $desc"
         echo "  name: $ocf_server_name$desc"
@@ -66,7 +66,7 @@ then
         then
             if [[ $pin =~ ^[0-9]+$ ]];
             then
-                echo "  starting $ocf_server_name/$desc on pin $pin"
+                echo "  starting $ocf_server_name$desc on pin $pin"
                 # this weirdness is needed since uuid is based on command name...
                 cp $OCF_DIR/$ocf_server_name.js $OCF_DIR/DEV/$ocf_server_name$desc.js
                 (export NODE_PATH; export NODE_DEBUG; /usr/bin/node "$OCF_DIR/DEV/$ocf_server_name$desc.js" $pin $desc) &

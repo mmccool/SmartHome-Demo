@@ -22,28 +22,50 @@ var device = require('iotivity-node'),
     exitId,
     sensorState = false,
     resourceTypeName = 'oic.r.buzzer',
-    resourceInterfaceName = '/a/buzzer',
+    resourceInterfaceBaseName = '/a/buzzer',
+    resourceInterfaceName,  
     simulationMode = false;
 
 // Default pin (digital)
-var pin = 6;
+var pin = 6;    // arg 1, if given
 
-// Parse command-line arguments
-var args = process.argv.slice(2);
-args.forEach(function(entry) {
-    if (entry === "--simulation" || entry === "-s") {
-        simulationMode = true;
-    }
-    else {
-        pin = parseInt(entry,10);
-    }
-});
+// Description (added to URL to distinguish multiple devices of the same type)
+var desc = "";  // arg 2, if given                                            
+var namedesc = "buzzer";                                                         
+                                                                              
+// Helper function for debugging.  Include "buzzer" in NODE_DEBUG to enable
+function dlog() {                         
+    var args = Array.prototype.slice.apply(arguments);
+    debuglog('(' + desc + ') ' + args.join());                                             
+}  
+
+// Parse command-line arguments                                               
+var args = process.argv.slice(2);                                             
+dlog("args: " + args);                                                          
+if ("--simulation" in args) {                                                 
+  args.splice(args.indexOf("--simulation"),1);                                
+  simulationMode = true;                                                      
+}                                                                             
+if ("-s" in args) {                                                           
+  args.splice(args.indexOf("-s"),1);                                          
+  simulationMode = true;                                                      
+}                                                                             
+if (args.length > 0) {                                                        
+  pin = parseInt(args[0],10);                                                 
+}                                                                             
+if (args.length > 1) {                                                        
+  desc = args[1];                                                             
+}                                                                             
+dlog('args: ' + pin + ' ' + desc);                                            
+namedesc += desc;                                                             
+resourceInterfaceName = resourceInterfaceBaseName + desc;                     
+dlog('resource: ' + resourceInterfaceName);     
 
 if (simulationMode) {
-    debuglog('Running in simulation mode');
+    dlog('Running in simulation mode');
 }
 else {
-    debuglog('Running on HW using D' + pin);
+    dlog('Running on HW using D' + pin);
 }
 
 // Require the MRAA library
@@ -53,8 +75,8 @@ if (!simulationMode) {
         mraa = require('mraa');
     }
     catch (e) {
-        debuglog('No mraa module: ', e.message);
-        debuglog('Automatically switching to simulation mode');
+        dlog('No mraa module: ' + e.message);
+        dlog('Automatically switching to simulation mode');
         simulationMode = true;
     }
 }
@@ -84,7 +106,7 @@ function playTone() {
 function updateProperties(properties) {
     sensorState = properties.value;
 
-    debuglog('Update received. value: ', sensorState);
+    dlog('Update received. value: ' + sensorState);
 
     if (simulationMode)
         return;
@@ -105,11 +127,11 @@ function getProperties() {
     // Format the payload.
     var properties = {
         rt: resourceTypeName,
-        id: 'buzzer',
+        id: namedesc,
         value: sensorState
     };
 
-    debuglog('Send the response. value: ', sensorState);
+    dlog('Send the response. value: ' + sensorState);
     return properties;
 }
 
@@ -119,10 +141,10 @@ function notifyObservers(request) {
 
     buzzerResource.notify().then(
         function() {
-            debuglog('Successfully notified observers.');
+            dlog('Successfully notified observers.');
         },
         function(error) {
-            debuglog('Notify failed with error: ', error);
+            dlog('Notify failed with error: ' + error);
         });
 }
 
@@ -148,13 +170,13 @@ function updateHandler(request) {
 }
 
 device.device = Object.assign(device.device, {
-    name: 'Smart Home Buzzer',
+    name: 'Smart Home Buzzer (' + namedesc + ')',
     coreSpecVersion: 'core.1.1.0',
     dataModels: ['res.1.1.0']
 });
 
 function handleError(error) {
-    debuglog('Failed to send response with error: ', error);
+    dlog('Failed to send response with error: ' + error);
 }
 
 device.platform = Object.assign(device.platform, {
@@ -169,7 +191,7 @@ if (device.device.uuid) {
     // Setup Buzzer sensor pin.
     setupHardware();
 
-    debuglog('Create Buzzer resource.');
+    dlog('Create resource.');
 
     // Register Buzzer resource
     device.server.register({
@@ -182,7 +204,7 @@ if (device.device.uuid) {
         properties: getProperties()
     }).then(
         function(resource) {
-            debuglog('register() resource successful');
+            dlog('register() resource successful');
             buzzerResource = resource;
 
             // Add event handlers for each supported request type
@@ -190,13 +212,13 @@ if (device.device.uuid) {
             resource.onupdate(updateHandler);
         },
         function(error) {
-            debuglog('register() resource failed with: ', error);
+            dlog('register() resource failed with: ' + error);
         });
 }
 
 // Cleanup when interrupted
 function exitHandler() {
-    debuglog('Delete Buzzer Resource.');
+    dlog('Delete resource.');
 
     if (exitId)
         return;
@@ -211,10 +233,10 @@ function exitHandler() {
     // Unregister resource.
     buzzerResource.unregister().then(
         function() {
-            debuglog('unregister() resource successful');
+            dlog('unregister() resource successful');
         },
         function(error) {
-            debuglog('unregister() resource failed with: ', error);
+            dlog('unregister() resource failed with: ' + error);
         });
 
     // Exit
