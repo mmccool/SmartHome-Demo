@@ -9,7 +9,7 @@ PROJ_HOME=/opt/SmartHome-Demo
 OCF_DIR=$PROJ_HOME/ocf-servers/js-servers
 
 # configuration file name
-CONFIG_FILE=$PROJ_HOME/ocf-servers/ocf-servers.conf
+CONFIG_FILE=$PROJ_HOME/ocf-servers/ocf-servers-`hostname`.conf
 
 # delay between launching device servers
 LAUNCH_DELAY=5s
