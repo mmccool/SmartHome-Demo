@@ -34,3 +34,6 @@ start at boot.
     systemctl enable ocfservers.service
     systemctl start ocfservers.service
 
+Don't forget to open the CoAP port in the firewall at some point, too:
+
+    iptables -A INPUT -p udp --dport 5683 -j ACCEPT
