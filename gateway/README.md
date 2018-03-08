@@ -59,10 +59,10 @@ A native installation assumes that you have [node.js](https://nodejs.org/) runni
 1. Install the `node.js` dependencies
 2. Start the SmartHome Gateway services
 
-First of all, copy the content of this Github repository to your target system (we assume that this entire repo has been copied under `/opt` throughout the rest of this document):
+First of all, copy the content of this Github repository to your target system (we assume that this entire repo has been copied in your home directory throughout the rest of this document):
 ```
-$ cd /opt
-$ sudo git clone https://github.com/01org/SmartHome-Demo
+$ cd
+$ git clone https://github.com/01org/SmartHome-Demo
 $ cd SmartHome-Demo
 ```
 
@@ -75,11 +75,12 @@ Here are the `node.js` dependencies that you need to install next:
 * [WebSocket](https://www.npmjs.com/package/websocket)
 * [mraa](https://www.npmjs.com/package/mraa): this is only needed if you want to use the Smart Power Meter with a serial line connection. See this [README.md](../sensors//DC_power_meter/README.md) for more details on the Smart Power Meter.
 
-Example:
+
+The dependencies are also captured (and maintained) in the [package.json](./package.json) file in this folder. To install these dependencies, please follow these steps:
 ```
-$ cd /opt/SmartHome-Demo
-$ sudo npm install iot-rest-api-server express websocket
-$ sudo npm install mraa #optional
+$ cd $HOME/SmartHome-Demo/gateway
+$ npm install
+$ npm install mraa #optional
 ```
 
 ### How to start the Home GW services
@@ -90,17 +91,17 @@ There are two services you need to start to have a fully functional Home Gateway
 
   + The `gateway-server`
       ```
-      $ cd /opt/SmartHome-Demo
-      $ /usr/bin/node gateway/gateway-server.js & # Start server with 3D UI and rules engine.
+      $ cd $HOME/SmartHome-Demo/gateway
+      $ /usr/bin/node gateway-server.js & # Start server with 3D UI and rules engine.
       ```
    OR
       ```
-      $ /usr/bin/node gateway/gateway-server.js -r & # Start server with rules engine only.
+      $ /usr/bin/node gateway-server.js -r & # Start server with rules engine only.
       ```
 
   + The `IoT REST API Server`
       ```
-      $ cd /opt/SmartHome-Demo
+      $ cd $HOME/SmartHome-Demo/gateway
       $ /usr/bin/node node_modules/iot-rest-api-server/index.js &
       ```
 
@@ -108,7 +109,9 @@ There are two services you need to start to have a fully functional Home Gateway
 
 For those Linux operating systems that use `systemd`, we provide `systemd` service files in the [`systemd-files`](./systemd-files) folder. Follow these few steps below to use those:
 ```
-$ sudo cp -r /opt/SmartHome-Demo/gateway/systemd-files/* /lib/systemd/system/
+$ cd $HOME/SmartHome-Demo/gateway
+$ sed -i "s,\/opt\/,$HOME\/,g" systemd-files/*.service 
+$ sudo cp -r systemd-files/* /lib/systemd/system/
 $ sudo systemctl daemon-reload
 $ sudo systemctl start smarthome-gateway
 $ sudo systemctl start iot-rest-api-server
