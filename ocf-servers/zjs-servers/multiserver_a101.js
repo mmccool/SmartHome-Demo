@@ -112,7 +112,7 @@ var actuatorPwmPeriodInMsec = 20,
 console.log('Starting Multiple OCF servers...');
 
 // Event Handlers
-temperatureSensor.onchange = function() {
+temperatureSensor.onreading = function() {
     var temperature = temperatureSensor.celsius;
     console.log('temperature: ' + temperature + '°C');
     temperatureProperties.temperature = temperature;
@@ -126,7 +126,7 @@ temperatureSensor.onerror = function(event) {
     console.log('exception occurs: ' + event.error.name + ' - ' + event.error.message);
 };
 
-lightSensor.onchange = function() {
+lightSensor.onreading = function() {
     var illuminance = lightSensor.illuminance;
     console.log('illuminance: ' + illuminance);
     illuminanceProperties.illuminance = illuminance;
