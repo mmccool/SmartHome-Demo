@@ -44,7 +44,7 @@ var temperatureResource,
 
 console.log('Starting OCF Temperature server...');
 
-sensor.onchange = function() {
+sensor.onreading = function() {
     var temperature = sensor.celsius;
     console.log('BMI160 temperature: ' + temperature + '°C');
     temperatureProperties.temperature = temperature;

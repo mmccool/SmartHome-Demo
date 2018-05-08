@@ -91,7 +91,7 @@ var accelerometerSensor = new Accelerometer({
 console.log('Starting Multiple OCF servers...');
 
 // Event Handlers
-magnetometerSensor.onchange = function() {
+magnetometerSensor.onreading = function() {
     console.log("magnetic field (μT): " +
                 " x=" + magnetometerSensor.x +
                 " y=" + magnetometerSensor.y +
@@ -109,7 +109,7 @@ magnetometerSensor.onerror = function(event) {
     console.log("error: " + event.error.name + " - " + event.error.message);
 };
 
-accelerometerSensor.onchange = function() {
+accelerometerSensor.onreading = function() {
     console.log("acceleration (m/s^2): " +
                 " x=" + accelerometerSensor.x +
                 " y=" + accelerometerSensor.y +
