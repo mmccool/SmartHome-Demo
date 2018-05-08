@@ -1,0 +1,11 @@
+[Unit]
+Description=Solar Panel startup service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node /opt/SmartHome-Demo/ocf-servers/js-servers/solar.js
+Environment='NODE_PATH=/opt/SmartHome-Demo/node_modules/'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

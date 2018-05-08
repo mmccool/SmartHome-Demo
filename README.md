@@ -9,7 +9,6 @@ The repository is organised as follows:
 * `ocf-servers`: OCF server implementations in JavaScript (located in `js-servers` and `zjs-servers`).
    * Generic documentation on how to set them up is available [here](ocf-servers/js-servers/README.md)
    * The specifications for the OCF servers is availabe in the `ocf-servers/doc/` folder
-* `ostro-config`: a collection of `systemd` service files that can help automatically start the Home GW software (on the Home Gateway) and OCF servers (on the OCF server hardware). (*note:* these require manual adaptation and not all OCF servers have an associated service file available)
 * `sensors`: source code for the various Smart Devices that are based on the [Zephyr Project](https://www.zephyrproject.org/)
 * `smarthome-web-portal`: code for the cloud portal
 * `snap`: meta file for packaging the Home Gateway into a [snap](https://www.ubuntu.com/desktop/snappy)

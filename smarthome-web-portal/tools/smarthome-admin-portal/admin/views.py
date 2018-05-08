@@ -305,9 +305,9 @@ def create_model():
     obj_dataset = db.session.query(DataSet).filter(DataSet.title == dataset_title).all()
     dataset_id = obj_dataset[0].id
     dataset_filename = obj_dataset[0].filename
-    dataset_path = UPLOAD_FOLDER + dataset_filename
-    pic_path = Model_Pic_FOLDER + model_name + ".png"
-    train.train(dataset_path, Model_Seria_FOLDER + model_name, model_name, 2, pic_path)
+    dataset_path = os.path.join(UPLOAD_FOLDER, dataset_filename)
+    pic_path = os.path.join(Model_Pic_FOLDER, model_name + ".png")
+    train.train(dataset_path, os.path.join(Model_Seria_FOLDER, model_name), model_name, 2, pic_path)
 
     # write to DB
     algorithm_type = "Linear"

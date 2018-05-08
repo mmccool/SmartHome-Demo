@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-var device = require('iotivity-node'),
-    debuglog = require('util').debuglog('illuminance'),
+var debuglog = require('util').debuglog('illuminance'),
     illuminanceResource,
     sensorPin,
     notifyObserversTimeoutId,
@@ -24,9 +23,11 @@ var device = require('iotivity-node'),
     hasUpdate = false,
     observerCount = 0,
     lux = 0.0,
-    simulationMode = false;
+    simulationMode = false,
+    secureMode = true;
 
 // Default pin (analog)
+var pin_type = "A";
 var pin = 3;
 
 // Description (added to URL to distinguish multiple devices of the same type)
@@ -50,6 +51,10 @@ if ("-s" in args) {
   args.splice(args.indexOf("-s"),1);           
   simulationMode = true;
 }             
+if ("--no-secure" in args) {                                              
+  args.splice(args.indexOf("--no-secure"),1);                        
+  secureMode = false;         
+}
 if (args.length > 0) {
   pin = parseInt(args[0],10);
 }                       
@@ -65,8 +70,24 @@ if (simulationMode) {
     dlog('Running in simulation mode');
 }
 else {
-    dlog('Running on HW using A' + pin);
+    dlog('Running on HW using ' + pin_type + pin);
 };
+if (secureMode) {
+    dlog('Running in secure mode');
+}
+
+// Create appropriate ACLs when security is enabled
+if (secureMode) {
+    debuglog('Running in secure mode');
+    require('./config/json-to-cbor')(__filename, [{
+        href: resourceInterfaceName,
+        rel: '',
+        rt: [resourceTypeName],
+        'if': ['oic.if.baseline']
+    }], true);
+}
+
+var device = require('iotivity-node');
 
 // Require the MRAA library
 var mraa = '';
@@ -178,6 +199,8 @@ device.platform = Object.assign(device.platform, {
 });
 
 if (device.device.uuid) {
+    debuglog("Device id: ", device.device.uuid);
+
     // Setup Illuminance sensor pin.
     setupHardware();
 
@@ -210,6 +233,11 @@ function exitHandler() {
 
     if (exitId)
         return;
+
+    if (notifyObserversTimeoutId) {
+        clearTimeout(notifyObserversTimeoutId);
+        notifyObserversTimeoutId = null;
+    }
 
     // Unregister resource.
     illuminanceResource.unregister().then(

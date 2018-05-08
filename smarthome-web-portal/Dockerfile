@@ -1,4 +1,20 @@
-FROM ubuntu:14.04
+#
+# Copyright (c) 2017 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+FROM ubuntu:16.04
 
 ARG http_proxy
 
@@ -12,44 +28,31 @@ RUN echo $https_proxy
 
 RUN echo $http_proxy
 
-# update apt source.list
-COPY tools/docker/sources.list /etc/apt
-
-RUN rm /var/lib/apt/lists/* -vf
+# Uncomment the two lines below if you wish to use an Ubuntu mirror repository
+# that is closer to you (and hence faster). The 'sources.list' file inside the
+# 'tools/docker/' folder is set to use one of Ubuntu's official mirror in Taiwan.
+# You should update this file based on your own location. For a list of official
+# Ubuntu mirror repositories, check out: https://launchpad.net/ubuntu/+archivemirrors
+#COPY tools/docker/sources.list /etc/apt
+#RUN rm /var/lib/apt/lists/* -vf
 
 RUN apt-get clean && apt-get update
 
-# install python dependencies
-RUN apt-get -y install gcc build-essential checkinstall libreadline-gplv2-dev \
-libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev wget
-
-WORKDIR /usr/src
-
-#COPY Python-2.7.12.tgz .
-RUN ["wget", "--no-check-certificate", "https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz"]
-
-RUN tar zxvf Python-2.7.12.tgz
-
-WORKDIR Python-2.7.12
-
-RUN ./configure && make altinstall
+# install python2 and common tools
+RUN apt-get -y install python
 
 # forward port
 EXPOSE 3000 4000
 
-RUN echo "alias python='/usr/local/bin/python2.7'" > ~/.bash_aliases
-
-RUN . ~/.bash_aliases
-
 # Install MySQL Server in a Non-Interactive mode. Default root password will be "intel123"
-RUN apt-get install -y debconf-utils libmysqlclient-dev \
-    && echo "mysql-server-5.6 mysql-server/root_password password intel123" | debconf-set-selections \
-    && echo "mysql-server-5.6 mysql-server/root_password_again password intel123" | debconf-set-selections \
-    && apt-get -y install mysql-server-5.6 \
-    && sed -i -e"s/^bind-address\s*=\s*127.0.0.1/bind-address = 0.0.0.0/" /etc/mysql/my.cnf
+RUN export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install mariadb-server \
+    && sed -i -e "s/^bind-address\s*=\s*127.0.0.1/bind-address = 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf \
+    && mkdir -p /var/run/mysqld \
+    && chown mysql:mysql /var/run/mysqld
 
-# Install rabbitmq
-RUN apt-get install -y rabbitmq-server git python-pip python-dev ca-certificates git-core ssh supervisor python-scipy python-numpy python-matplotlib
+# Install rabbitmq supervisor and python deps for data analytics
+RUN apt-get install -y rabbitmq-server python-pip supervisor python-scipy python-numpy python-matplotlib
 
 # Install source code
 COPY . /opt/SmartHome-Demo/smarthome-web-portal/
@@ -61,7 +64,9 @@ WORKDIR /opt/SmartHome-Demo/smarthome-web-portal
 
 # install portal dependencies
 RUN pip install -r requirements.txt
-RUN pip install Flask-SQLAlchemy==2.1
+
+# create symbolic link to admin portal's model images from the home portal
+RUN ln -sf /opt/SmartHome-Demo/smarthome-web-portal/tools/smarthome-admin-portal/admin/static/images/model /opt/SmartHome-Demo/smarthome-web-portal/static/image/model 
 
 # configure portal settings
 COPY tools/docker/SHProject.conf utils/SHProject.conf

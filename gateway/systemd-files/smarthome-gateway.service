@@ -1,0 +1,11 @@
+[Unit]
+Description=SmartHome demo startup service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node /opt/SmartHome-Demo/gateway/gateway-server.js -r
+Environment='NODE_PATH=/opt/SmartHome-Demo/gateway/node_modules/'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -66,8 +66,8 @@ class Resource(object):
                         elif bm == 3 and not secure:
                             observable = True
 
-                    if rt and not rt.startswith("oic.wk") and href \
-                            and (href.startswith("/a/") or href.startswith("/brillo/")):
+                    if rt and not href.startswith("/oic/") and \
+                            not href.startswith("/introspection"):
                         sensors.append((item['di'], href, rt, observable))
                     else:
                         # ignore the wrong or unregistered json types

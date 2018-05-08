@@ -1,0 +1,11 @@
+[Unit]
+Description=IoT REST API Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node /opt/SmartHome-Demo/gateway/node_modules/iot-rest-api-server/index.js
+Environment='NODE_PATH=/opt/SmartHome-Demo/gateway/node_modules/'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

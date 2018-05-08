@@ -19,8 +19,19 @@ Here are the steps to run the Smart Home Web Portal in a Docker container.
     ```
 
 2. Configurations
-    * Update the preferred source in source.list
-      eg. change `archive.ubuntu.com` to `hk.archive.ubuntu.com`
+    * Choose an Ubuntu mirror that is close to you (optional)
+        - Uncomment the last two lines below in the Dockerfile:
+        ```
+        # Uncomment the two lines below if you wish to use an Ubuntu mirror repository
+        # that is closer to you (and hence faster). The 'sources.list' file inside the
+        # 'tools/docker/' folder is set to use one of Ubuntu's official mirror in Taiwan.
+        # You should update this file based on your own location. For a list of official
+        # Ubuntu mirror repositories, check out: https://launchpad.net/ubuntu/+archivemirrors
+        #COPY tools/docker/sources.list /etc/apt
+        #RUN rm /var/lib/apt/lists/* -vf
+        ```
+        - Update `tools/docker/sources.list` file according to your own location    
+        eg. change `free.nchc.org.tw` to the closest [mirror site](https://launchpad.net/ubuntu/+archivemirrors)
 
 3. Getting the Docker image
    There are two options (described in step 3.1 and 3.2 respectively) to get the Docker image. We recommend using option 3.1 as it is simpler and quicker.
@@ -81,9 +92,11 @@ Here are the steps to run the Smart Home Web Portal in a Docker container.
       ```
    * Login to the Home portal through `http://<host-ip-addr>:3030` (login credentials: OTC/!otivity)
 
-6. Refer to the [wiki page](https://github.com/01org/SmartHome-Demo/wiki/How-to-load-weather-and-power-prediction-data-automatically%3F) on how to load the power and temperature prediction data automatically
+6. The Cloud portal supports multiple gateways for multiple users. If you want to add more users/gateways, refer to the [wiki](https://github.com/01org/SmartHome-Demo/wiki/How-to-manage-users-and-gateways-in-the-admin-portal) on how to manage users and gateways in the admin portal
 
-7. Troubleshooting the container
+7. Load analytics data in the admin portal, refer to the [wiki](https://github.com/01org/SmartHome-Demo/wiki/How-to-load-weather-and-power-prediction-data-automatically%3F) on how to load the power and temperature prediction data automatically
+
+8. Troubleshooting the container
     * `$ sudo docker ps -a`    
     Checks all the running containers and get the id and status of the containers. The output looks like this:
     ```

@@ -1,0 +1,72 @@
+{
+  "controls": [
+    {
+      "name": "Provisioning",
+      "rt": "smarthome://provisioning"
+    },
+    {
+      "name": "Smart Home 3D",
+      "rt": "http://0.0.0.0:8080"
+    },
+    {
+      "name": "Cloud Admin Portal",
+      "rt": "http://0.0.0.0:3031"
+    },
+    {
+      "name": "Cloud Management Console",
+      "rt": "http://0.0.0.0:3030"
+    },
+    {
+      "name": "PIR Motion",
+      "rt": "oic.r.sensor.motion"
+    },
+    {
+      "name": "MQ2 Gas Sensor",
+      "rt": "oic.r.sensor.carbondioxide"
+    },
+    {
+      "name": "Ambient Light",
+      "rt": "oic.r.sensor.illuminance"
+    },
+    {
+      "name": "Button",
+      "rt": "oic.r.button"
+    },
+    {
+      "name": "Fan",
+      "rt": "oic.r.fan"
+    },
+    {
+      "name": "LED",
+      "rt": "oic.r.switch.binary"
+    },
+    {
+      "name": "Buzzer",
+      "rt": "oic.r.buzzer"
+    },
+    {
+      "name": "LCD Backlight",
+      "rt": "oic.r.colour.rgb"
+    },
+    {
+      "name": "Environmental Sensor",
+      "rt": "oic.r.sensor.environment"
+    },
+    {
+      "name": "Power Meter",
+      "rt": "oic.r.energy.consumption"
+    },
+    {
+      "name": "Solar Panel",
+      "rt": "oic.r.solar"
+    },
+    {
+      "name": "Audio Control",
+      "rt": "oic.r.audio"
+    },
+    {
+      "name": "MP3 Player",
+      "rt": "x.com.intel.demo.mp3player"
+    }
+  ]
+}

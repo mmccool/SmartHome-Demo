@@ -1,0 +1,8 @@
+.a
+.o
+.swp
+.log
+npm-debug.log*
+node_modules
+outdir
+outdir-*

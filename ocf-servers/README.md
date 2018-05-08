@@ -2,8 +2,11 @@
 ## JavaScript OCF servers
 A number of JavaScript-based OCF servers are provided in the [`js-servers`](./js-servers/) and [`zjs-servers`](./zjs-servers/) folders for `node.js` and [`zephyr.js`](https://github.com/01org/zephyr.js) respectively. The `node.js` dependencies (that can be installed using `npm`) are:
 * [IoTivity-node](https://www.npmjs.com/package/iotivity-node)
+* [lodash.mergewith](https://www.npmjs.com/package/lodash.mergewith)
+* [lodash.assignin](https://www.npmjs.com/package/lodash.assignin)
 * [mraa](https://www.npmjs.com/package/mraa)
 * [noble](https://www.npmjs.com/package/noble) (only for some)
+* [uuid](https://www.npmjs.com/package/uuid)
 
 ## Docker container startup script
 The [`start-ocf-servers-in-docker.sh`](./start-ocf-servers-in-docker.sh) 

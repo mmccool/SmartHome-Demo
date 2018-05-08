@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-var device = require('iotivity-node'),
-    debuglog = require('util').debuglog('fan'),
+var debuglog = require('util').debuglog('fan'),
     fanResource,
     sensorPin,
     exitId,
@@ -22,9 +21,9 @@ var device = require('iotivity-node'),
     resourceTypeName = 'oic.r.fan',
     resourceInterfaceBaseName = '/a/fan',
     resourceInterfaceName,
-    simulationMode = false;
+    simulationMode = false,
+    secureMode = true;
 
-                                                                           
 // Default pin (digital)                                                      
 var pin = 9;    // arg 1, if given                                            
                                                                            
@@ -49,6 +48,10 @@ if ("-s" in args) {
   args.splice(args.indexOf("-s"),1);                                          
   simulationMode = true;                      
 }                                              
+if ("--no-secure" in args) {                                              
+  args.splice(args.indexOf("--no-secure"),1);                        
+  secureMode = false;                                                   
+}                                                                       
 if (args.length > 0) {                                                        
   pin = parseInt(args[0],10);                                           
 }                                             
@@ -59,7 +62,30 @@ dlog('parsed args: ' + pin + ' ' + desc);
 namedesc += desc;                                                       
 resourceInterfaceName = resourceInterfaceBaseName + desc;
 dlog('resource: ' + resourceInterfaceName);                                   
-                                    
+
+if (simulationMode) {
+    dlog('Running in simulation mode');
+}
+else {
+    dlog('Running on HW using pin D' + pin);
+};
+if (secureMode) {
+    dlog('Running in secure mode');
+}                                    
+
+// Create appropriate ACLs when security is enabled
+if (secureMode) {
+    debuglog('Running in secure mode');
+    require('./config/json-to-cbor')(__filename, [{
+        href: resourceInterfaceName,
+        rel: '',
+        rt: [resourceTypeName],
+        'if': ['oic.if.baseline']
+    }], true);
+}
+
+var device = require('iotivity-node');
+
 // Require the MRAA library
 var mraa = '';
 if (!simulationMode) {
@@ -82,7 +108,7 @@ function setupHardware() {
     }
 }
 
-// This function parce the incoming Resource properties
+// This function parses the incoming Resource properties
 // and change the sensor state.
 function updateProperties(properties) {
     sensorState = properties.value;
@@ -98,7 +124,7 @@ function updateProperties(properties) {
       sensorPin.write(0);
 }
 
-// This function construct the payload and returns when
+// This function constructs the payload and returns when
 // the GET request received from the client.
 function getProperties() {
     // Format the payload.
@@ -161,6 +187,8 @@ device.platform = Object.assign(device.platform, {
 });
 
 if (device.device.uuid) {
+    debuglog("Device id: ", device.device.uuid);
+
     // Setup Fan sensor pin.
     setupHardware();
 

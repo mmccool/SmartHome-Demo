@@ -55,29 +55,74 @@ For more details, please take a look at the [Dockerfile](./Dockerfile).
 
 ## Native installation
 
-A native installation assumes that you have [node.js](https://nodejs.org/) running on your system, please refer to the [node.js](https://nodejs.org/) website or your OS documentation for how to install it. Once [node.js](https://nodejs.org/) is installed, please proceed to the following sections to:
-1. Install the node.js dependencies
+A native installation assumes that you have [node.js](https://nodejs.org/) running on your system, please refer to the [node.js](https://nodejs.org/) website or your OS documentation for how to install it. You will also need to install a set of tools and development libraries to build [IoTivity](https://wiki.iotivity.org). Here is an example when running Ubuntu: [build dependencies for Ubuntu](https://wiki.iotivity.org/build_iotivity_with_ubuntu_build_machine). Once ready, proceed to the following sections to:
+1. Install the `node.js` dependencies
 2. Start the SmartHome Gateway services
+
+First of all, copy the content of this Github repository to your target system (we assume that this entire repo has been copied in your home directory throughout the rest of this document):
+```
+$ cd
+$ git clone https://github.com/01org/SmartHome-Demo
+$ cd SmartHome-Demo
+```
 
 ### Node.js dependencies
 
-Node.js dependencies can be installed using `npm install <node_module>` (you need a live network connection) for those not already provided by the OS.
+Here are the `node.js` dependencies that you need to install next:
 * [IoT REST API Server]
 * [IoTivity-node](https://www.npmjs.com/package/iotivity-node): this is in fact automatically pulled in when installing the [IoT REST API Server]
 * [Express](https://www.npmjs.com/package/express)
 * [WebSocket](https://www.npmjs.com/package/websocket)
 * [mraa](https://www.npmjs.com/package/mraa): this is only needed if you want to use the Smart Power Meter with a serial line connection. See this [README.md](../sensors//DC_power_meter/README.md) for more details on the Smart Power Meter.
 
-### How to start the Home GW SW
 
-1. Transfer the content of this repo to your Home Gateway (e.g. `git clone https://github/01org/SmartHome-Demo`)
-2. Install all `node.js` dependencies (see above)
-3. Start the services:
-
+The dependencies are also captured (and maintained) in the [package.json](./package.json) file in this folder. To install these dependencies, please follow these steps:
 ```
-    node gateway/gateway-server.js # Start server with 3D UI and rules engine.
-    node gateway/gateway-server.js -r # Start server with rules engine only.
+$ cd $HOME/SmartHome-Demo/gateway
+$ npm install
+$ npm install mraa #optional
+```
+
+### How to start the Home GW services
+
+1. Starting services manually
+
+There are two services you need to start to have a fully functional Home Gateway:
+
+  + The `gateway-server`
+      ```
+      $ cd $HOME/SmartHome-Demo/gateway
+      $ /usr/bin/node gateway-server.js & # Start server with 3D UI and rules engine.
+      ```
+   OR
+      ```
+      $ /usr/bin/node gateway-server.js -r & # Start server with rules engine only.
+      ```
+
+  + The `IoT REST API Server`
+      ```
+      $ cd $HOME/SmartHome-Demo/gateway
+      $ /usr/bin/node node_modules/iot-rest-api-server/index.js &
+      ```
+
+2. Automating things with [systemd]
+
+For those Linux operating systems that use `systemd`, we provide `systemd` service files in the [`systemd-files`](./systemd-files) folder. Follow these few steps below to use those:
+```
+$ cd $HOME/SmartHome-Demo/gateway
+$ sed -i "s,\/opt\/,$HOME\/,g" systemd-files/*.service 
+$ sudo cp -r systemd-files/* /lib/systemd/system/
+$ sudo systemctl daemon-reload
+$ sudo systemctl start smarthome-gateway
+$ sudo systemctl start iot-rest-api-server
+```
+
+If you want those to be started automatically when you bring up the system, enable them in `systemd`:
+```
+$ sudo systemctl enable smarthome-gateway
+$ sudo systemctl enable iot-rest-api-server
 ```
 
 [Docker]: https://www.docker.com/
 [IoT REST API Server]: https://github.com/01org/iot-rest-api-server
+[systemd]: https://www.freedesktop.org/wiki/Software/systemd/

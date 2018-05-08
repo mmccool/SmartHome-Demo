@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">SmartHome Companion</string>
+    <string name="fragment_webview_greeting">Enter URL to open the web site...</string>
+    <string name="fragment_resource_view_greeting">Discovering resources...</string>
+    <string name="msg_discovering_ownership">Discovering owned/unowned devices...</string>
+    <string name="msg_establishing_ownership">Establishing ownership...</string>
+    <string name="msg_oxm_succeed">Ownership established</string>
+    <string name="msg_oxm_failure">Failed to transfer ownership</string>
+    <string name="msg_linking_devices">Linking devices </string>
+    <string name="msg_provision_cred_succeed">Provision credentials succeed</string>
+    <string name="msg_provision_cred_failure">Failed to provision credentials</string>
+    <string name="msg_loading">Loading...</string>
+    <string name="option_http_put">Use PUT request</string>
+    <string name="unit_illuminance">lux</string>
+    <string name="unit_power">mW</string>
+    <string name="unit_temperature">°C</string>
+    <string name="unit_humidity">%</string>
+    <string name="unit_pressure">hPa</string>
+</resources>

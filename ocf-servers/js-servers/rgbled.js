@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-var device = require('iotivity-node'),
-    debuglog = require('util').debuglog('rgbled'),
+var debuglog = require('util').debuglog('rgbled'),
     rgbLEDResource,
     sensorPin,
     sensorState = false,
@@ -26,11 +25,13 @@ var device = require('iotivity-node'),
     rgbValue = [0,0,0],
     clockPin,
     dataPin,
-    simulationMode = false;
+    simulationMode = false,
+    secureMode = true;
 
 // Default pin (digital)                                                      
-var pin = 7;    // arg 1, if given; also uses pin + 1                                            
-                                                                           
+var pin_type = "D";
+var pin = 7;    // arg 1, if given; also uses pin + 1     
+
 // Description (added to URL to distinguish multiple devices of the same type)
 var desc = "";  // arg 2, if given                                            
 var namedesc = "led";                                                      
@@ -52,6 +53,10 @@ if ("-s" in args) {
   args.splice(args.indexOf("-s"),1);                                          
   simulationMode = true;                      
 }                                                     
+if ("--no-secure" in args) {                                              
+  args.splice(args.indexOf("--no-secure"),1);                                
+  secureMode = false;                                                   
+}                                                                       
 if (args.length > 0) {                                                        
   pin = parseInt(args[0],10);                                           
 }                                             
@@ -62,6 +67,30 @@ dlog('parsed args: ' + pin + ' ' + desc);
 namedesc += desc;                                                       
 resourceInterfaceName = resourceInterfaceBaseName + desc;
 dlog('resource: ' + resourceInterfaceName);                                   
+
+if (simulationMode) {
+    dlog('Running in simulation mode');
+}
+else {
+    dlog('Running on HW using pins ' + pin_type + pin 
+                           + " and " + pin_type + (pin+1));
+};
+if (secureMode) {
+    dlog('Running in secure mode');
+}
+
+// Create appropriate ACLs when security is enabled
+if (secureMode) {
+    debuglog('Running in secure mode');
+    require('./config/json-to-cbor')(__filename, [{
+        href: resourceInterfaceName,
+        rel: '',
+        rt: [resourceTypeName],
+        'if': ['oic.if.baseline']
+    }], true);
+}
+
+var device = require('iotivity-node');
 
 // Require the MRAA library
 var mraa = '';
@@ -243,6 +272,8 @@ device.platform = Object.assign(device.platform, {
 });
 
 if (device.device.uuid) {
+    debuglog("Device id: ", device.device.uuid);
+
     // Setup RGB LED sensor pin.
     setupHardware();
 

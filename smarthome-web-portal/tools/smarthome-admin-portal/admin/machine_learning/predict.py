@@ -4,11 +4,12 @@ Data analytics: predict trend by model
 """
 from numpy import *
 import pickle
+import os
 from admin.config import Model_Seria_FOLDER
 
  
 def predict(model_name, iteration, predict_value):
-    file_name = Model_Seria_FOLDER+model_name+'.pkl'
+    file_name = os.path.join(Model_Seria_FOLDER, model_name+'.pkl')
     pkl_file = open(file_name, 'rb')
     model = pickle.load(pkl_file)
     pkl_file.close()
